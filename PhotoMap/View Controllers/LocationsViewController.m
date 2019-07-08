@@ -9,8 +9,8 @@
 #import "LocationsViewController.h"
 #import "LocationCell.h"
 
-static NSString * const clientID = @"YOUR_CLIENT_ID";
-static NSString * const clientSecret = @"YOUR_CLIENT_SECRET";
+static NSString * const clientID = @"KCROEQ0DHYTMPBOJMPUNNF1MMPNEFLT0KVQ3SNMZK5PEXT54";
+static NSString * const clientSecret = @"CUMMNKWLSNBGCTKKVPWMHPE04JX1QBJOHYC4ORHIKW4TG04C";
 
 @interface LocationsViewController () <UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
 
@@ -42,6 +42,7 @@ static NSString * const clientSecret = @"YOUR_CLIENT_SECRET";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     LocationCell *cell = [tableView dequeueReusableCellWithIdentifier:@"LocationCell" forIndexPath:indexPath];
+    [cell updateWithLocation:self.results[indexPath.row]];
     return cell;
 }
 
@@ -50,6 +51,8 @@ static NSString * const clientSecret = @"YOUR_CLIENT_SECRET";
     NSDictionary *venue = self.results[indexPath.row];
     NSNumber *lat = [venue valueForKeyPath:@"location.lat"];
     NSNumber *lng = [venue valueForKeyPath:@"location.lng"];
+    
+    [self.delegate locationsViewController:self didPickLocationWithLatitude:lat longitude:lng];
     NSLog(@"%@, %@", lat, lng);
 }
 
@@ -64,6 +67,17 @@ static NSString * const clientSecret = @"YOUR_CLIENT_SECRET";
 }
 
 - (void)fetchLocationsWithQuery:(NSString *)query nearCity:(NSString *)city {
+ 
+    /*NSString *jsonString = @"{ \"meta\": { \"code\": 200, \"requestId\": \"5ac51d7e6a607143d811cecb\" }, \"response\": { \"venues\": [ { \"id\": \"5642aef9498e51025cf4a7a5\", \"name\": \"Mr. Purple\", \"location\": { \"address\": \"180 Orchard St\", \"crossStreet\": \"btwn Houston & Stanton St\", \"lat\": 40.72173744277209, \"lng\": -73.98800687282996, \"labeledLatLngs\": [ { \"label\": \"display\", \"lat\": 40.72173744277209, \"lng\": -73.98800687282996 } ], \"distance\": 8, \"postalCode\": \"10002\", \"cc\": \"US\", \"city\": \"New York\", \"state\": \"NY\", \"country\": \"United States\", \"formattedAddress\": [ \"180 Orchard St (btwn Houston & Stanton St)\", \"New York, NY 10002\", \"United States\" ] }, \"categories\": [ { \"id\": \"4bf58dd8d48988d1d5941735\", \"name\": \"Hotel Bar\", \"pluralName\": \"Hotel Bars\", \"shortName\": \"Hotel Bar\", \"icon\": { \"prefix\": \"https:\/\/ss3.4sqi.net\/img\/categories_v2\/travel\/hotel_bar_\", \"suffix\": \".png\" }, \"primary\": true } ], \"venuePage\": { \"id\": \"150747252\" } } ] } }";
+
+    NSError *jsonError;
+    NSData *objectData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:objectData
+                                                                       options:NSJSONReadingMutableContainers
+                                                                         error:&jsonError];
+    self.results = [responseDictionary valueForKey:@"response.venues"];
+    [self.tableView reloadData];*/
+    
     NSString *baseURLString = @"https://api.foursquare.com/v2/venues/search?";
     NSString *queryString = [NSString stringWithFormat:@"client_id=%@&client_secret=%@&v=20141020&near=%@,CA&query=%@", clientID, clientSecret, city, query];
     queryString = [queryString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
@@ -82,5 +96,6 @@ static NSString * const clientSecret = @"YOUR_CLIENT_SECRET";
     }];
     [task resume];
 }
+
 
 @end
